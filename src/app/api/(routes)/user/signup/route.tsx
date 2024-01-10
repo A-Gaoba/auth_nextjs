@@ -2,19 +2,20 @@ import { connect } from "@/dbConfig/db"
 import Student from "@/models/studentModel"
 import { NextRequest, NextResponse } from "next/server"
 import bcryptjs from "bcryptjs"
+const jwt = require("jsonwebtoken")
 
 connect()
 
-export async function post(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const stuedent = await request.json()
-    const { name, email, password } = stuedent
-    console.log(stuedent)
+    const reqBody = await request.json()
+    const { name, email, password } = reqBody
+    console.log(reqBody)
 
     // check if student already exist
-    let existingStudent = await Student.findOne({ email })
+    const existingStudent = await Student.findOne({ email })
     if (existingStudent) {
-      return new Response("User with this email already exists", { status: 409 })
+      return NextResponse.json({ error: "student already exist" }, { status: 400 })
     }
 
     //hash password
@@ -32,11 +33,11 @@ export async function post(request: NextRequest) {
     return NextResponse.json({
       message: "Student successfully created",
       success: true,
-      data: savedStudent,
+      savedStudent
     })
 
   } catch (error: any) {
-    return new Response("Error in server", { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
 
   }
 

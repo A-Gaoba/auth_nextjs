@@ -1,38 +1,56 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
+import Student from '@/models/studentModel';
+import {toast} from 'react-hot-toast';
 
 const Signup = () => {
   const router = useRouter();
-
-  const [user, setUser] = useState({
+  const [student, setUStudent] = useState({
     name: '',
     email: '',
     password: '',
   });
 
+  const [buttonDisabled, setButtonDisabled] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
+
   const onSignup = async () => {
     try {
-      // Call your signup API endpoint with axios here
-      // For example:
-      // const response = await axios.post('/api/signup', user);
-      // Handle the response accordingly
-    } catch (error) {
-      // Handle error scenarios
-      console.error('Signup failed', error);
+      setLoading(true)
+      const response = await axios.post("api/user/singup", student)
+      console.log("sign up successfully", response.data)
+      router.push("/login")
+
+
+    } catch (error: any) {
+      console.error('Signup failed', error.message);
+      toast.error(error.message)
+    }
+    finally {
+      setLoading(true)
     }
   };
 
+  useEffect(() => {
+    if (student.email.length > 0 && student.password.length > 0 && student.name.length > 0) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [student]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setUser((prevUser) => ({ ...prevUser, [id]: value }));
+    setUStudent({
+      ...student, [e.target.id]: e.target.value
+    })
   };
 
   return (
     <div className='flex flex-col gap-5 justify-center items-center min-h-screen text-black bg-slate-300'>
-      <h1>Register here</h1>
+      <h1>{loading ? "processing" : "sing up"}</h1>
       <form className="w-82 flex flex-col gap-4">
         <div className='flex gap-2 justify-between'>
           <label htmlFor="name">Name : </label>
@@ -40,7 +58,7 @@ const Signup = () => {
             type="text"
             id="name"
             placeholder='name'
-            value={user.name}
+            value={student.name}
             onChange={handleInputChange}
           />
         </div>
@@ -52,7 +70,7 @@ const Signup = () => {
             id="email"
             placeholder='email'
             required
-            value={user.email}
+            value={student.email}
             onChange={handleInputChange}
           />
         </div>
@@ -64,11 +82,11 @@ const Signup = () => {
             id="password"
             placeholder='password'
             required
-            value={user.password}
+            value={student.password}
             onChange={handleInputChange}
           />
         </div>
-        <button type="button" onClick={onSignup}>Sign Up</button>
+        <button type="button" onClick={onSignup}>{buttonDisabled ? "Register" : "sign up"}</button>
 
       </form>
       <Link href="/login" className="underline hover:no-underline">
